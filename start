@@ -1,0 +1,38 @@
+#!/bin/bash
+while read -r line
+do
+if [[ "$line" == *"User interface"* ]]
+then
+    UserInt="${line#*: *}"
+fi
+if [[ "$line" == *"CPE interface"* ]]
+then
+    CPEInt="${line#*: *}"
+fi
+done <"defconf"
+
+if ! brctl show | grep $UserInt; then
+    if ! brctl show | grep $CPEInt; then
+        brctl addbr br0
+        ifconfig $UserInt 0.0.0.0 down
+        ifconfig $CPEInt 0.0.0.0 down
+        ifconfig $UserInt mtu 4000
+        ifconfig $CPEInt mtu 4000
+        ifconfig br0 mtu 4000
+        brctl addif br0 $UserInt
+        brctl addif br0 $CPEInt
+        ifconfig $UserInt up
+        ifconfig $CPEInt up
+        ifconfig br0 up
+    fi
+fi
+modprobe br_netfilter
+sysctl -w net.bridge.bridge-nf-call-iptables=1
+iptables -t mangle -F
+iptables -t mangle -X
+iptables -t nat -F
+iptables -t nat -X
+iptables -F
+iptables -X
+
+python3.6 ErrorInjector.py

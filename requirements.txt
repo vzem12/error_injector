@@ -1,0 +1,5 @@
+NetfilterQueue==0.8.1
+portio==0.5
+psutil==5.8.0
+PySimpleGUI==4.40.0
+scapy==2.4.5
